@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -15,8 +15,9 @@ import {
 import { Formik } from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
 import * as yup from 'yup';
-import { updateTokens } from 'state';
+import { updateTokens } from '../../state';
 import { useLocation } from 'react-router-dom';
+import { requestJson } from '../../requestJson';
 //import io from 'socket.io-client';
 
 function BotConfirmation({ open, handleClose, confMessage }) {
@@ -70,7 +71,6 @@ const BotForm = () => {
   const token = useSelector((state) => state.token);
   const authToken = token;
   //const [sessionId, setSessionId] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
   //const [socket, setSocket] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confMessage, setMessage] = useState('');
@@ -88,45 +88,39 @@ const BotForm = () => {
 
   const botInit = async (values, onSubmitProps) => {
     const sendData = { values, _id, pageType };
-    const savedUserResponse = await fetch(`https://botpulse.xyz/users/bot-prep`, {
+    const data = await requestJson(`/users/bot-prep`, {
       method: 'PATCH',
       headers: { "Authorization": `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(sendData),
     });
 
-    if (!savedUserResponse.ok) {
-      console.error("Failed to initialise bot:", savedUserResponse.statusText);
-      return;
-    }
-
-    const data = await savedUserResponse.json();
-  
+    // The server reserves tokens during preparation, before launch.
+    dispatch(updateTokens(-Number(values.botNum)));
+    await botLaunch(values, data, _id, pageType, authToken);
     onSubmitProps.resetForm();
-    //  setSessionId(data.sessionId);
-    botLaunch(values, data, _id, pageType, authToken);
   };
 
   const botLaunch = async (values, data, _id, pageType, authToken) => {
     const sessionId = data.sessionId;
 
     const sendData = { values, sessionId, _id, pageType, authToken };
-    const launchResponse = await fetch(`https://botpulse.xyz/users/bot-launch`, {
+    await requestJson(`/users/bot-launch`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(sendData),
     });
 
-    if (launchResponse.ok) {
-      handleOpenDialog("Bot successfully initialised");
-    } else {
-      console.error("Failed to launch bot:", launchResponse.statusText);
-    }
+    handleOpenDialog("Bot process started. Joining the game may take a moment.");
 
   };
 
   const handleFormSubmit = async (values, onSubmitProps) => {
-    await botInit(values, onSubmitProps);
-    dispatch(updateTokens(-values.botNum));
+    onSubmitProps.setStatus(null);
+    try {
+      await botInit(values, onSubmitProps);
+    } catch (error) {
+      onSubmitProps.setStatus(error.message);
+    }
   }
 
   return (
@@ -135,11 +129,6 @@ const BotForm = () => {
         <Typography fontWeight="bold" fontSize="clamp(1.5rem, 2.5rem, 2.75rem)" color="primary">
           {pageType.charAt(0).toUpperCase() + pageType.slice(1)} Bot
         </Typography>
-        {/*{statusMessage && (
-          <Typography color="secondary" style={{ marginTop: '20px' }}>
-            Status: {statusMessage}
-          </Typography>
-        )}*/}
       </Box>
       <Box
         width={isNonMobile ? "50%" : "93%"}
@@ -164,6 +153,8 @@ const BotForm = () => {
             handleChange,
             handleBlur,
             handleSubmit,
+            isSubmitting,
+            status,
           }) => (
             <form onSubmit={handleSubmit}>
               <Box display="grid" gap="30px" gridTemplateColumns="repeat(1, minmax(0, 1fr))">
@@ -203,6 +194,11 @@ const BotForm = () => {
               </Box>
 
               <Box>
+                {status && (
+                  <Typography role="alert" color="error" sx={{ mt: '2rem' }}>
+                    {status}
+                  </Typography>
+                )}
                 <Typography
                   sx={{
                     mt: '2rem',
@@ -218,6 +214,7 @@ const BotForm = () => {
                 <Button
                   fullWidth
                   type="submit"
+                  disabled={isSubmitting}
                   variant="contained"
                   color="primary"
                   sx={{ m: '2rem 0', p: "1rem " }}

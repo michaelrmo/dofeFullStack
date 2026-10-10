@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, Box, useMediaQuery, useTheme } from '@mui/material';
-import Navbar from 'scenes/navBar';
-import StarField from 'scenes/homePage/pageStyle';
+import Navbar from '../navBar';
+import StarField from '../homePage/pageStyle';
 
 
 // Main function
@@ -65,7 +65,6 @@ const AboutMePage = () => {
 
                         Keep in mind that these are simply made to flood kahoots and will not get the answers right, this feature will be added later<br></br><br></br>
 
-                        Anyway if you've got some spare change (<a href="https://buy.stripe.com/aEU7whaWn6mxdwsdQQ" style={{color: theme.palette.primary.main, textDecoration: "none"}}>pls donate</a>)<br></br><br></br>
                         
                     </Typography>
                 </Box>
@@ -79,9 +78,7 @@ const AboutMePage = () => {
                     <Typography variant="h5" fontWeight="500">
                         Email: <a href="mailto:admin@botpulse.xyz" style={{ color: theme.palette.primary.main }}>admin@botpulse.xyz</a>
                     </Typography>
-                    <Typography variant="h5" fontWeight="500">
-                        © 2024 BotPulse. All rights reserved. V 1.1
-                    </Typography>
+                
                 </Box>
             </Box>
         </>

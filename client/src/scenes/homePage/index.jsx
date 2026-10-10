@@ -1,5 +1,5 @@
 import React from 'react';
-import NavBar from 'scenes/navBar';
+import NavBar from '../navBar';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Card, CardContent, Grid, Button, useTheme, useMediaQuery, Box } from '@mui/material';
 import StarField from './pageStyle';
@@ -87,9 +87,6 @@ const HomePage = () => {
             }}>
                 <Typography variant="h5" fontWeight="500">
                     Email: <a href="mailto:admin@botpulse.xyz" style={{ color: theme.palette.primary.main }}>admin@botpulse.xyz</a>
-                </Typography>
-                <Typography variant="h5" fontWeight="500">
-                    © 2024 BotPulse. All rights reserved. V 1.1
                 </Typography>
             </Box>
         </Box>

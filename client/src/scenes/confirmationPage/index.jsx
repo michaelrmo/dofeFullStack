@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Box, useMediaQuery, useTheme } from '@mui/material';
-import StarField from 'scenes/homePage/pageStyle';
-import Navbar from 'scenes/navBar';
+import StarField from '../homePage/pageStyle';
+import Navbar from '../navBar';
 import CountdownTimer from './timer';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateTokens } from 'state';
+import { updateTokens } from '../../state';
+import { requestJson } from '../../requestJson';
 
 const ConfirmationPage = () => {
     const user = useSelector((state) => state.user);
@@ -19,11 +20,10 @@ const ConfirmationPage = () => {
     
     useEffect(() => {
         if (userId) {
-            fetch(`https://botpulse.xyz/users/tokens/${userId}`, {
+            requestJson(`/users/tokens/${userId}`, {
                 method: 'GET',
                 headers: { "Authorization": `Bearer ${token}`, 'Content-Type': 'application/json' },
             })
-            .then((response) => response.json())
             .then((data) => {
                 setTokens(data.tokens);
                 console.log("Tokens:", data.tokens);
@@ -69,9 +69,6 @@ const ConfirmationPage = () => {
             <Box sx={{ py: '2rem', textAlign: 'center', color: theme.palette.neutral.dark }}>
                 <Typography variant="h5" fontWeight="500">
                     Email: <a href="mailto:admin@botpulse.xyz" style={{ color: theme.palette.primary.main }}>admin@botpulse.xyz</a>
-                </Typography>
-                <Typography variant="h5" fontWeight="500">
-                    © 2024 BotPulse. All rights reserved. V 1.1
                 </Typography>
             </Box>
         </Box>

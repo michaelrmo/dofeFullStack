@@ -1,6 +1,6 @@
 import { Box, useTheme, Typography } from "@mui/material";
-import StarField from "scenes/homePage/pageStyle";
-import Navbar from "scenes/navBar";
+import StarField from "../homePage/pageStyle";
+import Navbar from "../navBar";
 import Form from "./Form";
 
 const BotPage = () => {
@@ -25,9 +25,6 @@ const BotPage = () => {
             }}>
                 <Typography variant="h5" fontWeight="500">
                     Email: <a href="mailto:admin@botpulse.xyz" style={{ color: theme.palette.primary.main }}>admin@botpulse.xyz</a>
-                </Typography>
-                <Typography variant="h5" fontWeight="500">
-                    © 2024 BotPulse. All rights reserved. V 1.1
                 </Typography>
             </Box>
         </Box>

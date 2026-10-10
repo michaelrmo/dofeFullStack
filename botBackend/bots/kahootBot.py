@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+import os
 import time
 import random
 import sys
@@ -50,7 +52,10 @@ def play_game(game_code,name,sessionId):
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome( options=chrome_options)
+    if os.environ.get("CHROME_BIN"):
+        chrome_options.binary_location = os.environ["CHROME_BIN"]
+    service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH"))
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     print(f"status:running,sessionId:{sessionId}", flush=True)
 
     #Joining the kahoot (might optimize later)
@@ -64,7 +69,7 @@ def play_game(game_code,name,sessionId):
 
     try:
         #Putting in game code
-        pinInput = driver.find_element(By.ID, "game-input")
+        pinInput = driver.find_element(By.NAME, "gameId")
         time.sleep(2)
         pinInput.send_keys(game_code)  
         pinInput.send_keys(Keys.RETURN)
@@ -77,7 +82,7 @@ def play_game(game_code,name,sessionId):
 
     try:
         #Putting in botName
-        nicInput = driver.find_element(By.ID, "nickname")
+        nicInput = driver.find_element(By.NAME, "nickname")
         nicInput.send_keys(name + str(random.randint(0,10000)))
         nicInput.send_keys(Keys.RETURN)
     except Exception as e:

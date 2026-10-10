@@ -24,9 +24,10 @@ app.disable('x-powered-by')
 
 //Creating an endpoit
 
+app.get("/healthz", (req, res) => res.json({ status: "ok" }));
 app.use("/regBots", botRoutes)
-const PORT = process.env.PORT;
+const PORT = Number(process.env.PORT || 3002);
+const HOST = process.env.HOST || "0.0.0.0";
 
 // Listening on the the given port
-app.listen(PORT, () => console.log(`Thing might be working ${PORT}`));
-   
+app.listen(PORT, HOST, () => console.log(`Bot backend listening on http://${HOST}:${PORT}`));

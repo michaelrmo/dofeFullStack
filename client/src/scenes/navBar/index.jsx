@@ -16,9 +16,9 @@ import {
   Close,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import {  setLogout } from "state";
+import {  setLogout } from "../../state";
 import { useNavigate } from "react-router-dom";
-import FlexBetween from "components/FlexBetween";
+import FlexBetween from "../../components/FlexBetween";
 
 
 // Main reusable nav bar component

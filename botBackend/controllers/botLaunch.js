@@ -1,50 +1,45 @@
-//Imports
-import { spawn } from "child_process";
-import fetch from 'node-fetch'; 
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { access } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
-// Main function use to launch bots
 export const botLaunch = async (req, res) => {
-    // Gets data from the request and then passes it through to the script
+    const { gameCode, botName, botNum, pageType, sessionId } = req.body;
+    console.log(`Bot launch received: type=${pageType}, session=${sessionId}`);
+
+    if (typeof pageType !== "string" || !/^[a-z][a-z0-9]*$/i.test(pageType)) {
+        return res.status(400).json({ message: "Invalid bot type." });
+    }
+
+    const scriptPath = fileURLToPath(new URL(`../bots/${pageType}Bot.py`, import.meta.url));
     try {
-        const { gameCode, botName, botNum, pageType, sessionId} = req.body;
-        const dataToSend = [gameCode, botNum, botName, sessionId];
-        const bot = spawn("python", [`bots/${pageType}Bot.py`, ...dataToSend]);
+        await access(scriptPath);
+    } catch {
+        return res.status(400).json({ message: `The ${pageType} bot is not available.` });
+    }
 
-        // Listening for any output data
-        // Currerntly will stay in development and will be added later
-        //bot.stdout.on("data", (data) => {
-        //    const output = data.toString();
-        //    console.log(output);
-        //    if (output.startsWith("status:")) {
-        //        const [statusText, sessionIdText] = output.split(",");
-        //        const status = statusText.split(":")[1].trim();
-        //        const sessionId = sessionIdText.split(":")[1].trim();
-        //         //Forward this status to the MainBackend
-        //        fetch('http://192.168.0.133:3001/users/bot-status', {
-        //            method: 'POST',
-        //            headers: {"Authorization": `Bearer ${authToken}`, 'Content-Type': 'application/json'},
-        //            body: JSON.stringify({ sessionId, status, gameCode, botName })
-        //        });
-        //    }
-        //});
+    try {
+        const python = process.env.PYTHON_BIN || "python3";
+        const args = [gameCode, botNum, botName, sessionId].map(String);
+        const bot = spawn(python, [scriptPath, ...args]);
 
-        // Listening for any error data
-
-        bot.stdout.on("data", (data) => {
-            console.log("Data from Python script:", data.toString());
+        bot.stdout.on("data", data => {
+            console.log(`Bot ${sessionId}: ${data.toString()}`);
         });
-        
-        bot.stderr.on("data", (data) => {
-            console.error("Error from Python script:", data.toString());
+        bot.stderr.on("data", data => {
+            console.error(`Bot ${sessionId} error: ${data.toString()}`);
         });
-
-        bot.on("close", (code) => {
-            console.log(`Python script exited with code ${code}`);
+        bot.on("close", (code, signal) => {
+            const message = `Bot ${sessionId} exited: code=${code}, signal=${signal || "none"}`;
+            if (code === 0) console.log(message);
+            else console.error(message);
         });
-
-        res.status(200).json({message:"Bot initialised "});
-    } catch (err) {
-        console.error("Failed to launch bot:", err);
-        res.status(500).json(err);
+        // Handle missing Python executables without crashing the Express process.
+        await once(bot, "spawn");
+        console.log(`Bot process started: session=${sessionId}, pid=${bot.pid}`);
+        res.status(202).json({ message: "Bot process started", sessionId });
+    } catch (error) {
+        console.error(`Failed to start bot ${sessionId}: ${error.message}`);
+        res.status(500).json({ message: "Could not start Python. Check the bot backend's Python installation and logs." });
     }
 };

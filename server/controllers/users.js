@@ -55,23 +55,30 @@ export const botPrep = async (req, res) => {
 export const botLaunch = async (req, res) => {
     try{
         const {values, sessionId,  pageType, authToken } = req.body;
-        console.log("Received request body:", req.body);
-        const gameCode = values.gameCode.replace(/\s+/g, '');
+        const gameCode = String(values.gameCode).replace(/\s+/g, '');
         console.log(gameCode);
         const botName = values.botName;
         const botNum = values.botNum;
         const send = async (gameCode ,botName, botNum, pageType, sessionId, authToken) =>{
             const dataToSend = {gameCode, botName, botNum, pageType, sessionId, authToken};
-            const response = await fetch("http://192.168.0.10:3002/regBots/botLaunch", {
+            const botBackendUrl = process.env.BOT_BACKEND_URL || "http://127.0.0.1:3002";
+            console.log(`Forwarding bot launch to ${botBackendUrl}: type=${pageType}, session=${sessionId}`);
+            const response = await fetch(`${botBackendUrl.replace(/\/$/, "")}/regBots/botLaunch`, {
                 method: "PATCH",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSend),
+                signal: AbortSignal.timeout(15000),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Bot backend returned HTTP ${response.status}`);
+            }
 
             const data = await response.json();
             console.log(data);
         };
-        send(gameCode ,botName, botNum, pageType, sessionId, authToken);
+        await send(gameCode ,botName, botNum, pageType, sessionId, authToken);
         res.status(200).json({message: `Session, ${sessionId}, initialised `});
     }catch (err){
         res.status(500).json({ message: err.message });

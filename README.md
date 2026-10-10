@@ -1,4 +1,5 @@
 # dofeFullStack
+Docker/Azure setup: [Run all three apps in one container](docker/README.md).
 ## Domain: https://botpulse.xyz
 
 ## Email: admin@botpulse.xyz

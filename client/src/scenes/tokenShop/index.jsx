@@ -1,6 +1,6 @@
 import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
-import StarField from "scenes/homePage/pageStyle";
-import Navbar from "scenes/navBar";
+import StarField from "../homePage/pageStyle";
+import Navbar from "../navBar";
 import React from 'react';
 import { useSelector } from "react-redux";
 
@@ -34,8 +34,8 @@ const TokenShop = () => {
                 //Stripe stuff that was almost the death of me
             >
                 <stripe-pricing-table 
-                    pricing-table-id="prctbl_1OrlRpJr7oV87jisK5RBrxyk"
-                    publishable-key="pk_live_51Oq1gWJr7oV87jisi1WSnv2TvNzKYG2G2cVrqqM1TFLYyiKcIL7RrSZY3bCcyrSI9wuQ2uIrpOXcIBhbLUp55Mez00rctwezyH"
+                    pricing-table-id="prctbl_1PUDWNJr7oV87jisH1EGf972"
+                    publishable-key="pk_test_51Oq1gWJr7oV87jis2dX6hsX5wJpwYOZXFmrbm0CRMQbO5yhXvkIpNjI1i0l0ZjIdozUi1K11cBVsEUwKrCrKfihU00EEY1IoEw"
                     client-reference-id={`${user._id}`}
                 >
                 </stripe-pricing-table>
@@ -50,9 +50,7 @@ const TokenShop = () => {
                 <Typography variant="h5" fontWeight="500">
                     Email: <a href="mailto:admin@botpulse.xyz" style={{ color: theme.palette.primary.main }}>admin@botpulse.xyz</a>
                 </Typography>
-                <Typography variant="h5" fontWeight="500">
-                    © 2024 BotPulse. All rights reserved. V 1.1
-                </Typography>
+
             </Box>
         </Box>
     );

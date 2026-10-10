@@ -17,7 +17,8 @@ import { Formik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setLogin } from "state";
+import { setLogin } from "../../state";
+import { requestJson } from '../../requestJson';
 
 const registerScheme = yup.object().shape({
     email: yup.string().email("Invalid Email").required("required"),
@@ -84,49 +85,38 @@ const Form = () => {
     };
 
     const register = async (values, onSubmitProps) => {
-        const response = await fetch(`https://botpulse.xyz/auth/register`, {
+        await requestJson(`/auth/register`, {
         method: "POST",
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
         });
-        if (!response.ok) {
-            // Extract error message from response
-            const errorData = await response.json();
-            handleOpenErrorDialog(errorData.msg || "User already exists");
-            onSubmitProps.resetForm();
-        } else {
-            await login({ email: values.email, password: values.password }, onSubmitProps);
-            navigate("/home");
-        }
+        await login({ email: values.email, password: values.password }, onSubmitProps);
+        navigate("/home");
     };  
         
 
     const login = async (values, onSubmitProps) => {
-        const response = await fetch(`https://botpulse.xyz/auth/login`, {
+        const loggedIn = await requestJson(`/auth/login`, {
             method: "POST",
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(values),
         });
 
-        if (!response.ok) {
-            // Extract error message from response
-            const errorData = await response.json();
-            handleOpenErrorDialog(errorData.msg || "Invalid login credentials.");
-            onSubmitProps.resetForm(); // Stop the form from submitting
-        } else {
-            // Successfully logged in
-            const loggedIn = await response.json();
-            dispatch(setLogin({ user: loggedIn.user, token: loggedIn.token }));
-        }
+        dispatch(setLogin({ user: loggedIn.user, token: loggedIn.token }));
     };
         
     const handleFormSubmit = async(values, onSubmitProps) => {
-        if (isLogin) await login(values, onSubmitProps);
-        if (isRegister) await register(values, onSubmitProps);
+        try {
+            if (isLogin) await login(values, onSubmitProps);
+            if (isRegister) await register(values, onSubmitProps);
+        } catch (error) {
+            handleOpenErrorDialog(error.message);
+        }
     };
 
     return(
         <Formik
+            key={pageType}
             onSubmit={handleFormSubmit}
             initialValues={isLogin ? initialValuesLogin : initialValuesRegister}
             validationSchema={isLogin ? loginSchema : registerScheme}
@@ -140,6 +130,7 @@ const Form = () => {
                 handleSubmit,
                 setFieldValue,
                 resetForm,
+                isSubmitting,
             }) => (
                 <form onSubmit={handleSubmit}>
                     <Box
@@ -211,6 +202,7 @@ const Form = () => {
                         <Button
                             fullWidth
                             type="submit"
+                            disabled={isSubmitting}
                             sx={{
                                 m: "2rem 0",
                                 p: "1rem",
